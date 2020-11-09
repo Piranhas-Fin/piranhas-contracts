@@ -1,4 +1,6 @@
+// idea: Dave Fisherman
 // developed by TimeusLab
+// https://timeus.org
 
 pragma solidity ^0.6.0;
 
