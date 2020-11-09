@@ -1,3 +1,7 @@
+// idea: Dave Fisherman
+// developed by TimeusLab
+// https://timeus.org
+
 contract Ownable is Context {
     address private _owner;
 
