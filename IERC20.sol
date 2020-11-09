@@ -1,3 +1,7 @@
+// idea: Dave Fisherman
+// developed by TimeusLab
+// https://timeus.org
+
 interface IERC20 {
     /**
      * @dev Returns the amount of tokens in existence.
