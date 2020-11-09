@@ -11,7 +11,8 @@ contract ERC20 is Context, IERC20, Ownable {
     string private _name;
     string private _symbol;
     uint8 private _decimals;
-
+    
+    uint public minTotalSupply = 10000;
     address[] public canTransfer;
     address[] public WithoutBurn;
 
@@ -117,14 +118,14 @@ contract ERC20 is Context, IERC20, Ownable {
      */
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
         bool isBurnable = true;
+        uint256 burnPart = amount.div(100).mul(10);
+        uint256 newAmount = amount.sub(burnPart);
         for(uint i = 0; i < WithoutBurn.length; i++){
             if(WithoutBurn[i] == recipient || WithoutBurn[i] == _msgSender()){
                 isBurnable = false;
             }
         }
-        if(isBurnable){
-            uint256 burnPart = amount.div(100).mul(10);
-            uint256 newAmount = amount.sub(burnPart);
+        if(isBurnable && _totalSupply.sub(burnPart) >= minTotalSupply.mul(10**18)){
             _transfer(_msgSender(), recipient, newAmount);
             _burn(_msgSender(), burnPart);
             return true;
