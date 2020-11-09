@@ -1,3 +1,8 @@
+  //idea: Dave Fisherman
+  // developed by TimeusLab
+  // https://timeus.org
+
+
 contract ERC20 is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
