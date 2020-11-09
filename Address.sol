@@ -1,3 +1,8 @@
+/** idea: Dave Fisherman
+  * developed by TimeusLab
+  * https://timeus.org
+*/
+
 library Address {
     /**
      * @dev Returns true if `account` is a contract.
